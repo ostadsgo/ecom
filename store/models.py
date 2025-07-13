@@ -1,5 +1,7 @@
-from django.db import models
 import datetime
+from decimal import Decimal
+
+from django.db import models
 
 
 class Category(models.Model):
@@ -7,6 +9,9 @@ class Category(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    class Meta:
+        verbose_name_plural = "Categories"
 
 
 class Customer(models.Model):
@@ -19,10 +24,23 @@ class Customer(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
-    price = models.DecimalField(default=0, max_digits=6, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(default=0, max_digits=6, decimal_places=2)
+    discount = models.IntegerField(default=0)  # type: ignore
     image = models.ImageField(upload_to="products/", default="default.jpg")
+    description = models.TextField(blank=True, null=True)
+
+    @property
+    def discounted_price(self):
+        return self.price * Decimal(str((1 - self.discount / 100))) #type: ignore
+
+    @property
+    def savings(self):
+        print(self.price)
+        print(self.discounted_price)
+        print(self.price - self.discounted_price)
+
+        return self.price - self.discounted_price
 
     def __str__(self):
         return f"{self.name}"
